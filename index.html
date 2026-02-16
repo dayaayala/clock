@@ -13,6 +13,8 @@
         <div class="hand hour-hand"></div>
         <!-- Minute hand (blue) -->
         <div class="hand minute-hand"></div>
+        <!-- Second hand (red, visible) -->
+        <div class="hand second-hand"></div>
 
         <!-- Tick marks (filled in by JavaScript) -->
         <div class="ticks"></div>
@@ -23,6 +25,7 @@
       // Update clock hands based on current time
       const hourHand = document.querySelector(".hour-hand");
       const minuteHand = document.querySelector(".minute-hand");
+      const secondHand = document.querySelector(".second-hand");
       const ticksContainer = document.querySelector(".ticks");
 
       // Create 12 tick marks: 4 major (black) + 8 minor (white)
@@ -34,22 +37,46 @@
         ticksContainer.appendChild(tick);
       }
 
+      // Get hour/minute/second for America/New_York reliably (handles DST)
+      function getNYTimeParts(date = new Date()) {
+        const fmt = new Intl.DateTimeFormat("en-US", {
+          timeZone: "America/New_York",
+          hour12: false,
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric",
+        });
+
+        const parts = fmt.formatToParts(date);
+        const out = { hour: 0, minute: 0, second: 0 };
+        for (const p of parts) {
+          if (p.type === "hour") out.hour = Number(p.value);
+          if (p.type === "minute") out.minute = Number(p.value);
+          if (p.type === "second") out.second = Number(p.value);
+        }
+        return { hours24: out.hour, minutes: out.minute, seconds: out.second };
+      }
+
       function setClock() {
-        // Fixed time: 12:33 PM
-        const baseHours24 = 12;
-        const baseMinutes = 33;
+        const { hours24, minutes, seconds } = getNYTimeParts(new Date());
 
-        const minutes = baseMinutes;
-        const hours = (baseHours24 % 12) + minutes / 60;
+        // Include minutes and seconds for smooth-ish positioning
+        const hours = (hours24 % 12) + minutes / 60 + seconds / 3600;
 
-        const minuteDegrees = (minutes / 60) * 360;
+        // rotate values so 0 minutes/seconds points to 12 o'clock
+        const minuteDegrees = (minutes / 60) * 360 + (seconds / 60) * 6 - 90;
         const hourDegrees = (hours / 12) * 360;
+
+        const secondDegrees = (seconds / 60) * 360 - 90;
 
         minuteHand.style.setProperty("--rotation", `${minuteDegrees}deg`);
         hourHand.style.setProperty("--rotation", `${hourDegrees}deg`);
+        if (secondHand) secondHand.style.setProperty("--rotation", `${secondDegrees}deg`);
       }
 
+      // Initialize and refresh every second so the clock shows New York time
       setClock();
+      setInterval(setClock, 1000);
     </script>
   </body>
   </html>

@@ -92,11 +92,12 @@ body {
 
 .second-hand {
   width: 38%;
-  height: 2.5%;
-  background: #ff0000; /* bright red second hand */
+  height: 1.2%;
+  background: #ffffff; /* white, skinny second hand */
   top: 50%;
   left: 50%;
   transform-origin: 0% 50%;
   transform: translateY(-50%) rotate(var(--rotation, 0deg));
+  border-radius: 2px;
 }
 
